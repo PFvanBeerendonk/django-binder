@@ -3,6 +3,7 @@ from binder.json import jsonloads
 from django.contrib.auth.models import User
 
 from ..testapp.models import Zoo, ZooEmployee
+from ..compare import assert_json, EXTRA
 
 class DecimalFiltersTest(TestCase):
 	def setUp(self):
@@ -87,3 +88,20 @@ class DecimalFiltersTest(TestCase):
 
 		result = jsonloads(response.content)
 		self.assertEqual(0, len(result['data']))
+
+	def test_decimal_in_url(self):
+		response = self.client.get('/zoo_employee/?.hourly_wage:gt=13.10')
+		self.assertEqual(response.status_code, 200)
+		returned_data = jsonloads(response.content)
+		
+        # only zoo 2 contain .name=zoo2
+
+		assert_json(returned_data, {
+			'data': [
+				{
+					'name': 'Senior',
+					EXTRA(): None,  # Other fields are dontcare
+				}
+			],
+			EXTRA(): None,  # Debug, meta, with, etc
+		})
